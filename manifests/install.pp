@@ -262,8 +262,14 @@ class python::install {
               Class['epel'] -> Package['virtualenv']
             }
           }
-
-          $virtualenv_package = "${python}-virtualenv"
+          case $facts['os']['release']['major'] {
+            '8': {
+              $virtualenv_package = regsubst("${python}-virtualenv", /^python3\d-/, 'python3-')
+            }
+            default: {
+              $virtualenv_package = "${python}-virtualenv"
+            }
+          }
         }
         'Debian': {
           if fact('lsbdistcodename') == 'trusty' {
@@ -280,11 +286,15 @@ class python::install {
         }
       }
 
-      if String($python::version) =~ /^python3/ {
+      if ($facts['os']['family'] == 'RedHat') and (versioncmp($facts['os']['release']['major'], '8') >= 0) {
+        $pip_category = undef
+        $pip_package = regsubst("${python}-pip", /^python3\d-/, 'python3-')
+        $pip_provider = 'pip3'
+      } elsif String($python::version) =~ /^python3/ {
         $pip_category = undef
         $pip_package = "${python}-pip"
         $pip_provider = $python.regsubst(/^.*python3\.?/,'pip3.').regsubst(/\.$/,'')
-      } elsif ($facts['os']['family'] == 'RedHat') and (versioncmp($facts['os']['release']['major'], '7') >= 0) {
+      } elsif ($facts['os']['family'] == 'RedHat') and (versioncmp($facts['os']['release']['major'], '7') == 0) {
         $pip_category = undef
         $pip_package = 'python2-pip'
         $pip_provider = pip2

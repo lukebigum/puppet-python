@@ -5,7 +5,6 @@
 #
 class python::params {
   $ensure                    = 'present'
-  $version                   = 'system'
   $pip                       = 'present'
   $dev                       = 'absent'
   $virtualenv                = 'absent'
@@ -17,6 +16,12 @@ class python::params {
   $provider                  = undef
   $valid_versions            = undef
   $manage_scl                = true
+
+  if $facts['os']['family'] == 'RedHat' and versioncmp($facts['os']['release']['major'], '8') >= 0 {
+    $version = 'python36'
+  } else {
+    $version = 'system'
+  }
 
   if $facts['os']['family'] == 'RedHat' {
     if $facts['os']['name'] != 'Fedora' {
